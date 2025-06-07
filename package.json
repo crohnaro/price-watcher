@@ -16,6 +16,7 @@
     "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",
     "node-cron": "^4.1.0",
-    "node-telegram-bot-api": "^0.66.0"
+    "node-telegram-bot-api": "^0.66.0",
+    "puppeteer": "^24.10.0"
   }
 }
