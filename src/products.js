@@ -9,8 +9,8 @@ export const CATEGORIES = {
             selector: '#blocoValores > div.sc-a24aba34-3.hSVqxN > div.sc-a24aba34-1.cpLDBn > div > h4'
         },
         {
-            url: "https://www.mercadolivre.com.br/memoria-ram-corair-vengeance-rgb-32gb-ddr5-para-amd-6000mhz/p/MLB29900563#polycard_client=recommendations_vpp-pdp-v2p-pom&reco_backend=ranker_retrieval_system_vpp_v2p&reco_model=ranker_entity_v2_retrieval_system_vpp_v2p&reco_client=vpp-pdp-v2p-pom&reco_item_pos=0&reco_backend_type=low_level&reco_id=68b2414b-e769-4c00-81e6-d58931f6b4f0&wid=MLB3844359111&sid=recos",
-            selector: "#\:Rad4p99gm\: > li.andes-list__item.ui-pdp-buy-box-offers__offer-list-item.ui-pdp-buy-box-offers__offer-list-item--SELECTED.andes-list__item--size-medium > div > div.ui-pdp-buy-box-offers__offer-content > div > div > div > div > span > span > span.andes-money-amount__fraction",
+            url: "https://www.mercadolivre.com.br/memoria-ram-corair-vengeance-rgb-32gb-ddr5-para-amd-6000mhz/p/MLB29900563",
+            selector: ".andes-money-amount__fraction",
             usePuppeteer: true
         }
     ],
