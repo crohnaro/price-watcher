@@ -1,3 +1,5 @@
+import { use } from "react";
+
 export const CATEGORIES = {
     "Memória Ram": [
         {
@@ -37,6 +39,11 @@ export const CATEGORIES = {
             url: "https://www.kabum.com.br/produto/404209/placa-mae-asus-tuf-gaming-x670e-plus-amd-x670-am5-atx-ddr5-90mb1bj0-m0eay0",
             selector: "#blocoValores > div.sc-a24aba34-3.hSVqxN > div.sc-a24aba34-1.cpLDBn > div > h4"
         },
+        {
+            url: "https://www.pichau.com.br/placa-mae-asus-tuf-gaming-b850-plus-wifi-ddr5-socket-amd-am5-atx-chipset-amd-b850-tuf-gaming-b850-plus-wifi",
+            selector: "body > div.MuiContainer-root.MuiContainer-maxWidthXl.mui-dakewu-top > div > div.MuiGrid2-root.MuiGrid2-direction-xs-row.MuiGrid2-grid-xs-12.MuiGrid2-grid-sm-5.mui-31z11e > div.mui-1wkp04y-priceButton > div.mui-jypips-price > div > div:nth-child(1) > div.mui-s1fvsl-section > div",
+            usePuppeteer: true
+        }
 
     ]
 }
