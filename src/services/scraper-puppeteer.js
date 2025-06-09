@@ -40,17 +40,27 @@ export async function fetchPriceWithPuppeteer(url, selector) {
             'Chrome/114.0.0.0 Safari/537.36'
         );
         await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        const bodyText = await page.evaluate(() => document.body.innerText);
-        const match = bodyText.match(/à vista\s*R\$[\s\u00a0]*([\d\.,]+)/i);
-        if (!match) throw new Error('Preço à vista não encontrado no Pichau');
-        price = parseFloat(
-            match[1]
-                .replace(/[^\d,]/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.')
-        );
 
-        // Kabum: pega todos os R$ e escolhe o menor (pix/à vista)
+        // Extrai o JSON-LD do produto
+        const jsonLd = await page.$$eval(
+            'script[type="application/ld+json"]',
+            scripts => scripts.map(s => s.innerText)
+        );
+        let data;
+        for (const txt of jsonLd) {
+            try {
+                const obj = JSON.parse(txt);
+                if (obj['@type'] === 'Product' && obj.offers?.price) {
+                    data = obj;
+                    break;
+                }
+            } catch { }
+        }
+        if (!data) {
+            throw new Error('JSON-LD de produto não encontrado na Pichau');
+        }
+        price = parseFloat(data.offers.price);
+
     } else if (cleanUrl.includes('kabum.com.br')) {
         page.setDefaultNavigationTimeout(60000);
         await page.setUserAgent(
@@ -61,7 +71,6 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
         const bodyText = await page.evaluate(() => document.body.innerText);
         const matches = Array.from(bodyText.matchAll(/R\$[\s\u00a0]*([\d\.,]+)/g));
-        if (!matches.length) throw new Error('Nenhum preço encontrado no Kabum');
         const values = matches.map(m =>
             parseFloat(
                 m[1]
@@ -72,13 +81,12 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         );
         price = Math.min(...values);
 
-
     } else {
         page.setDefaultNavigationTimeout(0);
         await page.setRequestInterception(true);
         page.on('request', req => {
-            const type = req.resourceType();
-            if (['image', 'stylesheet', 'font', 'media'].includes(type)) req.abort();
+            const t = req.resourceType();
+            if (['image', 'stylesheet', 'font', 'media'].includes(t)) req.abort();
             else req.continue();
         });
         await page.setUserAgent(
