@@ -23,13 +23,10 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         );
         await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
         await page.waitForSelector('.andes-money-amount__fraction', { timeout: 60000 });
-        const fraction = await page.$eval('.andes-money-amount__fraction', el => el.innerText);
-        const cents = await page.$eval('.andes-money-amount__cents', el => el.innerText).catch(() => '00');
+        const frac = await page.$eval('.andes-money-amount__fraction', el => el.innerText);
+        const cent = await page.$eval('.andes-money-amount__cents', el => el.innerText).catch(() => '00');
         price = parseFloat(
-            `${fraction},${cents}`
-                .replace(/[^\d,]/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.')
+            `${frac},${cent}`.replace(/[^\d,]/g, '').replace(/\./g, '').replace(',', '.')
         );
 
     } else if (cleanUrl.includes('pichau.com.br')) {
@@ -41,25 +38,24 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         );
         await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-        // Extrai o JSON-LD do produto
-        const jsonLd = await page.$$eval(
-            'script[type="application/ld+json"]',
-            scripts => scripts.map(s => s.innerText)
-        );
         let data;
-        for (const txt of jsonLd) {
-            try {
-                const obj = JSON.parse(txt);
-                if (obj['@type'] === 'Product' && obj.offers?.price) {
-                    data = obj;
-                    break;
-                }
-            } catch { }
+        const jsonLd = await page.$$eval('script[type="application/ld+json"]', ss =>
+            ss.map(s => s.innerText).find(txt => {
+                try { const o = JSON.parse(txt); return o['@type'] === 'Product' && o.offers?.price; }
+                catch { return false; }
+            })
+        );
+        if (jsonLd) {
+            const obj = JSON.parse(jsonLd);
+            price = parseFloat(obj.offers.price);
+        } else {
+            const body = await page.evaluate(() => document.body.innerText);
+            const m = body.match(/à vista\s*R\$[\s\u00a0]*([\d\.,]+)/i);
+            if (!m) throw new Error('Preço à vista não encontrado na Pichau');
+            price = parseFloat(
+                m[1].replace(/[^\d,]/g, '').replace(/\./g, '').replace(',', '.')
+            );
         }
-        if (!data) {
-            throw new Error('JSON-LD de produto não encontrado na Pichau');
-        }
-        price = parseFloat(data.offers.price);
 
     } else if (cleanUrl.includes('kabum.com.br')) {
         page.setDefaultNavigationTimeout(60000);
@@ -69,17 +65,10 @@ export async function fetchPriceWithPuppeteer(url, selector) {
             'Chrome/114.0.0.0 Safari/537.36'
         );
         await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-        const bodyText = await page.evaluate(() => document.body.innerText);
-        const matches = Array.from(bodyText.matchAll(/R\$[\s\u00a0]*([\d\.,]+)/g));
-        const values = matches.map(m =>
-            parseFloat(
-                m[1]
-                    .replace(/[^\d,]/g, '')
-                    .replace(/\./g, '')
-                    .replace(',', '.')
-            )
-        );
-        price = Math.min(...values);
+        const text = await page.evaluate(() => document.body.innerText);
+        const vals = Array.from(text.matchAll(/R\$[\s\u00a0]*([\d\.,]+)/g))
+            .map(m => parseFloat(m[1].replace(/[^\d,]/g, '').replace(/\./g, '').replace(',', '.')));
+        price = Math.min(...vals);
 
     } else {
         page.setDefaultNavigationTimeout(0);
@@ -96,12 +85,9 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         );
         await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
         await page.waitForSelector(selector, { timeout: 30000 });
-        const text = await page.$eval(selector, el => el.innerText);
+        const txt = await page.$eval(selector, el => el.innerText);
         price = parseFloat(
-            text
-                .replace(/[^\d,]/g, '')
-                .replace(/\./g, '')
-                .replace(',', '.')
+            txt.replace(/[^\d,]/g, '').replace(/\./g, '').replace(',', '.')
         );
     }
 
