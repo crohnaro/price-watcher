@@ -33,20 +33,15 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         const cents = await page.$eval('.andes-money-amount__cents', el => el.innerText).catch(() => '00');
         priceText = `${fraction},${cents}`;
     } else if (cleanUrl.includes('pichau.com.br')) {
-        page.setDefaultNavigationTimeout(120000);
-        await page.setUserAgent(
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-            'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-            'Chrome/114.0.0.0 Safari/537.36'
-        );
+        page.setDefaultNavigationTimeout(0);
         await page.setRequestInterception(true);
         page.on('request', req => {
             const type = req.resourceType();
-            if (['image', 'media'].includes(type)) req.abort();
+            if (['image', 'stylesheet', 'font', 'media'].includes(type)) req.abort();
             else req.continue();
         });
-        await page.goto(cleanUrl, { waitUntil: 'networkidle2', timeout: 120000 });
-        await page.waitForSelector(selector, { timeout: 120000 });
+        await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 0 });
+        await page.waitForSelector(selector, { timeout: 30000 });
         priceText = await page.$eval(selector, el => el.innerText);
     } else {
         page.setDefaultNavigationTimeout(0);
