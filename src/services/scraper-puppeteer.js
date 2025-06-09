@@ -50,12 +50,35 @@ export async function fetchPriceWithPuppeteer(url, selector) {
                 .replace(',', '.')
         );
 
+        // Kabum: pega todos os R$ e escolhe o menor (pix/à vista)
+    } else if (cleanUrl.includes('kabum.com.br')) {
+        page.setDefaultNavigationTimeout(60000);
+        await page.setUserAgent(
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
+            'AppleWebKit/537.36 (KHTML, like Gecko) ' +
+            'Chrome/114.0.0.0 Safari/537.36'
+        );
+        await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        const bodyText = await page.evaluate(() => document.body.innerText);
+        const matches = Array.from(bodyText.matchAll(/R\$[\s\u00a0]*([\d\.,]+)/g));
+        if (!matches.length) throw new Error('Nenhum preço encontrado no Kabum');
+        const values = matches.map(m =>
+            parseFloat(
+                m[1]
+                    .replace(/[^\d,]/g, '')
+                    .replace(/\./g, '')
+                    .replace(',', '.')
+            )
+        );
+        price = Math.min(...values);
+
+
     } else {
         page.setDefaultNavigationTimeout(0);
         await page.setRequestInterception(true);
         page.on('request', req => {
-            const t = req.resourceType();
-            if (['image', 'stylesheet', 'font', 'media'].includes(t)) req.abort();
+            const type = req.resourceType();
+            if (['image', 'stylesheet', 'font', 'media'].includes(type)) req.abort();
             else req.continue();
         });
         await page.setUserAgent(
