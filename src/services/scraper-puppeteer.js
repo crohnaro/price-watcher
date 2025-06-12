@@ -1,16 +1,5 @@
-// src/services/scraper-puppeteer.js
-import puppeteer from 'puppeteer';
-
-export async function fetchPriceWithPuppeteer(url, selector) {
-    const browser = await puppeteer.launch({
-        headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-gpu'
-        ]
-    });
+export async function fetchPriceWithPuppeteer(browser, url, selector) {
+    console.log(`🕷️  Puppeteer scraping: ${url}`);
     const page = await browser.newPage();
     const cleanUrl = url.split('#')[0];
 
@@ -20,8 +9,6 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         'AppleWebKit/537.36 (KHTML, like Gecko) ' +
         'Chrome/114.0.0.0 Safari/537.36'
     );
-
-    // bloqueia só imagens e mídia
     await page.setRequestInterception(true);
     page.on('request', req => {
         const t = req.resourceType();
@@ -29,42 +16,43 @@ export async function fetchPriceWithPuppeteer(url, selector) {
         else req.continue();
     });
 
-    await page.goto(cleanUrl, {
-        waitUntil: 'domcontentloaded',
-        timeout: 60000
-    });
-
     let priceText;
+
     if (cleanUrl.includes('mercadolivre.com.br')) {
-        // Mercado Livre: frac + cents
-        await page.waitForSelector('.andes-money-amount__fraction');
+        console.log('→ branch MercadoLivre');
+        await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.waitForSelector('.andes-money-amount__fraction', { timeout: 60000 });
         const frac = await page.$eval('.andes-money-amount__fraction', el => el.innerText);
         const cents = await page.$eval('.andes-money-amount__cents', el => el.innerText).catch(() => '00');
         priceText = `${frac},${cents}`;
-
     } else if (cleanUrl.includes('pichau.com.br')) {
-        // Pichau: usa o selector vindo do products.js
-        await page.waitForSelector(selector);
-        priceText = await page.$eval(selector, el => el.innerText);
-
-    } else if (cleanUrl.includes('kabum.com.br')) {
-        // Kabum: pega todos os R$… e escolhe o menor (pix/à vista)
-        const body = await page.evaluate(() => document.body.innerText);
-        const vals = Array.from(body.matchAll(/R\$[\s\u00a0]*([\d\.,]+)/g))
-            .map(m => parseFloat(m[1].replace(/\./g, '').replace(',', '.')));
-        priceText = String(Math.min(...vals)).replace('.', ',');
-
+        console.log('→ branch Pichau (networkidle2)');
+        await page.goto(cleanUrl, { waitUntil: 'networkidle2', timeout: 60000 });
+        const vistaSelector = 'div[class*="price_vista"]';
+        try {
+            await page.waitForSelector(vistaSelector, { timeout: 60000 });
+            priceText = await page.$eval(vistaSelector, el => el.innerText);
+        } catch {
+            console.log('⚠️  Pichau fallback to provided selector');
+            await page.waitForSelector(selector, { timeout: 60000 });
+            priceText = await page.$eval(selector, el => el.innerText);
+        }
     } else {
-        // fallback genérico: seletor custom
-        await page.waitForSelector(selector);
+        console.log('→ branch Generic');
+        await page.goto(cleanUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.waitForSelector(selector, { timeout: 60000 });
         priceText = await page.$eval(selector, el => el.innerText);
     }
 
-    await browser.close();
+    await page.close();
 
-    return parseFloat(
+    console.log(`🔍 raw priceText for ${url}: "${priceText}"`);
+    const numeric = parseFloat(
         priceText
+            .replace(/\u00a0/g, '')
             .replace(/[^\d,]/g, '')
             .replace(',', '.')
     );
+    console.log(`✅ parsed price for ${url}: ${numeric}`);
+    return numeric;
 }

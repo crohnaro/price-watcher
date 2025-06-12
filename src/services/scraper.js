@@ -2,26 +2,17 @@ import axios from 'axios';
 import { load } from 'cheerio';
 
 export async function fetchPrice(url, selector) {
-    const { data: html } = await axios.get(url, {
-        headers: {
-            'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ' +
-                'AppleWebKit/537.36 (KHTML, like Gecko) ' +
-                'Chrome/114.0.0.0 Safari/537.36',
-            'Accept-Language': 'pt-BR,pt;q=0.9',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9',
-            'Referer': url
-        },
-        timeout: 30_000
-    });
-
-    const $ = load(html);
-    const priceText = $(selector).first().text();
-    // ... parse para número
-    return parseFloat(
-        priceText
+    console.log(`scraper-axios → GET ${url}`);
+    const { data } = await axios.get(url);
+    const $ = load(data);
+    const text = $(selector).first().text().trim();
+    console.log(`scraper-axios → selector=${selector}\n  raw="${text}"`);
+    const price = parseFloat(
+        text
             .replace(/[^\d,]/g, '')
             .replace(/\./g, '')
             .replace(',', '.')
     );
+    console.log(`scraper-axios → parsed=${price}`);
+    return price;
 }

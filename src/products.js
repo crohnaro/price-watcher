@@ -22,12 +22,12 @@ export const CATEGORIES = {
         },
         {
             url: "https://www.pichau.com.br/placa-mae-gigabyte-b850-eagle-wifi6e-ddr5-socket-amd-am5-atx-chipset-amd-b850-b850-eagle-wifi6e",
-            selector: "body > div.MuiContainer-root.MuiContainer-maxWidthXl.mui-dakewu-top > div > div.MuiGrid2-root.MuiGrid2-direction-xs-row.MuiGrid2-grid-xs-12.MuiGrid2-grid-sm-5.mui-31z11e > div.mui-1wkp04y-priceButton > div.mui-jypips-price > div > div:nth-child(1) > div.mui-s1fvsl-section > div",
+            selector: "div.mui-1q2ojdg-price_vista",
             usePuppeteer: true
         },
         {
             url: "https://www.pichau.com.br/placa-mae-asus-prime-x870-p-wifi-ddr5-socket-amd-am5-atx-chipset-amd-x870-prime-x870-p-wifi",
-            selector: "body > div.MuiContainer-root.MuiContainer-maxWidthXl.mui-dakewu-top > div > div.MuiGrid2-root.MuiGrid2-direction-xs-row.MuiGrid2-grid-xs-12.MuiGrid2-grid-sm-5.mui-31z11e > div.mui-1wkp04y-priceButton > div.mui-jypips-price > div > div:nth-child(1) > div.mui-s1fvsl-section > div.mui-1q2ojdg-price_vista",
+            selector: "div.mui-1q2ojdg-price_vista",
             usePuppeteer: true
         },
         {
@@ -44,7 +44,7 @@ export const CATEGORIES = {
         },
         {
             url: "https://www.pichau.com.br/placa-mae-asus-tuf-gaming-b850-plus-wifi-ddr5-socket-amd-am5-atx-chipset-amd-b850-tuf-gaming-b850-plus-wifi",
-            selector: "body > div.MuiContainer-root.MuiContainer-maxWidthXl.mui-dakewu-top > div > div.MuiGrid2-root.MuiGrid2-direction-xs-row.MuiGrid2-grid-xs-12.MuiGrid2-grid-sm-5.mui-31z11e > div.mui-1wkp04y-priceButton > div.mui-jypips-price > div > div:nth-child(1) > div.mui-s1fvsl-section > div",
+            selector: "div.mui-1q2ojdg-price_vista",
             usePuppeteer: true
         }
 
